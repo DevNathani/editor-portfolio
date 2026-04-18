@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 
 import { UserProvider } from './context/UserContext';
 import { ProjectProvider } from './context/ProjectContext';
@@ -16,26 +15,28 @@ import AchievementEditor from './pages/AchievementEditor';
 import ProfileEditor from './pages/ProfileEditor';
 import SkillsServicesEditor from './pages/SkillsServicesEditor';
 import SignInPage from './pages/SignInPage';
-import SSOCallback from './pages/SSOCallback';
 
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_YOUR_KEY";
+const PrivateRoute = ({ children }) => {
+  const { isLoaded, isSignedIn } = require('./context/UserContext').useUser();
+
+  if (!isLoaded) return <div className="p-8 text-center">Loading context...</div>;
+  if (!isSignedIn) return <Navigate to="/sign-in" replace />;
+  return children;
+};
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <UserProvider>
       <BrowserRouter>
-                {/* Forcing dark mode to maintain portfolio aesthetic */}
+        {/* Forcing dark mode to maintain portfolio aesthetic */}
         <div className="dark min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/sign-in" element={<SignInPage />} />
-                    <Route path="/sso-callback" element={<SSOCallback />} />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/sign-in" element={<SignInPage />} />
 
-                    {/* Protected routes */}
-                    <Route path="/*" element={
-                      <>
-                        <SignedIn>
-                          <UserProvider>
+            {/* Protected routes */}
+            <Route path="/*" element={
+              <PrivateRoute>
                             <CategoryProvider>
                               <ProjectProvider>
                                 <AchievementProvider>
@@ -58,16 +59,11 @@ export default function App() {
                                 </AchievementProvider>
                               </ProjectProvider>
                             </CategoryProvider>
-                          </UserProvider>
-                        </SignedIn>
-                        <SignedOut>
-                          <Navigate to="/sign-in" replace />
-                        </SignedOut>
-                      </>
-                    } />
-                  </Routes>
-                </div>
+              </PrivateRoute>
+            } />
+          </Routes>
+        </div>
       </BrowserRouter>
-    </ClerkProvider>
+    </UserProvider>
   );
 }

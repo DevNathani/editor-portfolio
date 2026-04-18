@@ -1,38 +1,37 @@
 import User from '../models/User.js';
 
-// Get or Create user on login
-export const syncUser = async (req, res) => {
-  try {
-    const { clerkUserId, email } = req.body;
-    
-    let user = await User.findOne({ clerkUserId });
-    
-    if (!user) {
-      user = new User({ clerkUserId, email, role: 'admin' });
-      await user.save();
-    }
-    
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+// Legacy syncUser removed. Handled by authController now.
+
+import jwt from 'jsonwebtoken';
 
 // Protect Routes Middleware via Role checking
 export const requireAdmin = async (req, res, next) => {
   try {
-    // In production, you would parse the Bearer token using Clerk SDK here. 
-    // For quick start, we'll check a custom header 'Clerk-User-Id' that the frontend sets during API calls.
-    const clerkUserId = req.headers['clerk-user-id']; 
-    if (!clerkUserId) return res.status(401).json({ message: "Unauthorized: Missing identity header" });
-
-    const user = await User.findOne({ clerkUserId });
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden: Administrator permissions required to upload/modify." });
+    let token;
+    
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized: Missing authentication token" });
     }
 
-    next();
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_development_only';
+    
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = await User.findById(decoded.id).select('-password');
+      
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Forbidden: Administrator permissions required." });
+      }
+      
+      next();
+    } catch (error) {
+      return res.status(401).json({ message: "Unauthorized: Invalid or expired token" });
+    }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server auth error: " + error.message });
   }
 };

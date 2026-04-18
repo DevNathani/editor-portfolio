@@ -5,8 +5,8 @@ import { useCategories } from '../context/CategoryContext';
 import { useAchievements } from '../context/AchievementContext';
 import { useProfile } from '../context/ProfileContext';
 import { useSkillsServices } from '../context/SkillsServicesContext';
+import { useUser } from '../context/UserContext';
 import { Plus, Trash, Edit, LogOut, User, Wrench } from 'lucide-react';
-import { useClerk } from '@clerk/clerk-react';
 
 export default function Dashboard() {
   const { projects, deleteProject, loading: pLoad } = useProjects();
@@ -14,7 +14,7 @@ export default function Dashboard() {
   const { achievements, deleteAchievement, loading: aLoad } = useAchievements();
   const { profile } = useProfile();
   const { data: skillsData } = useSkillsServices();
-  const { signOut } = useClerk();
+  const { logout } = useUser();
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-12">
@@ -23,7 +23,7 @@ export default function Dashboard() {
           <h1 className="text-4xl font-heading font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">CMS Dashboard</h1>
           <p className="text-muted-foreground mt-2">Manage your entire portfolio autonomously.</p>
         </div>
-        <button onClick={() => signOut()} className="flex items-center text-red-400 hover:text-red-300 transition-colors">
+        <button onClick={() => logout()} className="flex items-center text-red-400 hover:text-red-300 transition-colors">
           <LogOut className="w-5 h-5 mr-2" /> Sign Out
         </button>
       </div>
