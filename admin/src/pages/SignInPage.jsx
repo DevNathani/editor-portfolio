@@ -1,11 +1,18 @@
-import { useState } from 'react';
-import { useSignIn } from '@clerk/clerk-react';
+import { useEffect, useState } from 'react';
+import { useSignIn, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Terminal, Zap } from 'lucide-react';
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { isSignedIn } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      navigate('/');
+    }
+  }, [isLoaded, isSignedIn, navigate]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
