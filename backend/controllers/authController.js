@@ -5,8 +5,8 @@ import transporter from '../config/nodemailer.js';
 import crypto from 'crypto';
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret_for_development_only', {
-    expiresIn: '30d',
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.EXPIRE_IN,
   });
 };
 
@@ -35,12 +35,12 @@ export const requestAccess = async (req, res) => {
     if (user) {
       // Send approval email to Super Admin
       const adminEmail = process.env.CONTACT_TO_EMAIL;
-      const adminUrl = process.env.ADMIN_URL || 'http://localhost:5174';
+      const adminUrl = process.env.ADMIN_URL;
       const approvalLink = `${adminUrl}/api/auth/approve/${approvalToken}`; // We'll handle this on backend or frontend
 
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || '"Portfolio Admin" <no-reply@portfolio.com>',
+          from: process.env.SMTP_FROM,
           to: adminEmail,
           subject: 'New Admin Access Request',
           html: `
@@ -48,7 +48,7 @@ export const requestAccess = async (req, res) => {
               <h2>New Access Request</h2>
               <p>User <strong>${username}</strong> (${email}) has requested admin access.</p>
               <p>Click the link below to approve them:</p>
-              <a href="${process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace('5173', '5000') : 'http://localhost:5000'}/api/auth/approve/${approvalToken}" style="padding: 10px 20px; background: #06b6d4; color: black; text-decoration: none; border-radius: 5px;">Approve User</a>
+              <a href="${process.env.BACKEND_URL}/api/auth/approve/${approvalToken}" style="padding: 10px 20px; background: #06b6d4; color: black; text-decoration: none; border-radius: 5px;">Approve User</a>
             </div>
           `
         });
@@ -106,7 +106,7 @@ export const loginUser = async (req, res) => {
       // Send OTP
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || '"Portfolio Admin" <no-reply@portfolio.com>',
+          from: process.env.SMTP_FROM,
           to: user.email,
           subject: 'Your Login Verification Code',
           html: `
@@ -176,7 +176,7 @@ export const forgotPassword = async (req, res) => {
 
     try {
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"Portfolio Admin" <no-reply@portfolio.com>',
+        from: process.env.SMTP_FROM,
         to: user.email,
         subject: 'Password Reset Request',
         html: `
