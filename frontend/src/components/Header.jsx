@@ -15,8 +15,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex gap-8 items-center">
-          <Link to="/projects" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Work</Link>
-          <Link to="/achievements" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Achievements</Link>
+          <a href="/#achievements" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Achievements</a>
+          <a href="/#work" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Work</a>
           <a href="/#skills" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Skills</a>
         </nav>
 

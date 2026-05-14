@@ -35,22 +35,29 @@ export const UserProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
+    return res.data; // { pending_otp: true }
+  };
+
+  const verifyLogin = async (email, otp) => {
+    const res = await api.post('/auth/verify-login', { email, otp });
     setToken(res.data.token);
     setUser(res.data);
     localStorage.setItem('adminToken', res.data.token);
     return res.data;
   };
 
-  const register = async (username, email, password) => {
-    const res = await api.post('/auth/register', { username, email, password });
+  const requestAccess = async (username, email, password) => {
+    const res = await api.post('/auth/request-access', { username, email, password });
     return res.data;
   };
 
-  const verifyOtp = async (email, otp) => {
-    const res = await api.post('/auth/verify-otp', { email, otp });
-    setToken(res.data.token);
-    setUser(res.data);
-    localStorage.setItem('adminToken', res.data.token);
+  const forgotPassword = async (email) => {
+    const res = await api.post('/auth/forgot-password', { email });
+    return res.data;
+  };
+
+  const resetPassword = async (email, otp, newPassword) => {
+    const res = await api.post('/auth/reset-password', { email, otp, newPassword });
     return res.data;
   };
 
@@ -61,7 +68,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ api, isLoaded, isSignedIn: !!token, user, token, login, register, verifyOtp, logout }}>
+    <UserContext.Provider value={{ api, isLoaded, isSignedIn: !!token, user, token, login, verifyLogin, requestAccess, forgotPassword, resetPassword, logout }}>
       {children}
     </UserContext.Provider>
   );

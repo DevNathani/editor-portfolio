@@ -4,11 +4,11 @@ import { Eye, EyeOff, Lock, Mail, Terminal, Zap, User, KeyRound } from 'lucide-r
 import { useUser } from '../context/UserContext';
 
 export default function SignInPage() {
-  const { login, register, verifyOtp } = useUser();
+  const { login, verifyLogin, requestAccess, forgotPassword, resetPassword } = useUser();
   const navigate = useNavigate();
 
-  const [view, setView] = useState('login'); // 'login' | 'register' | 'otp'
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', otp: '' });
+  const [view, setView] = useState('login'); // 'login' | 'login_otp' | 'register' | 'forgot_password' | 'reset_password'
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', otp: '', newPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -23,14 +23,23 @@ export default function SignInPage() {
     try {
       if (view === 'login') {
         await login(formData.email, formData.password);
+        setView('login_otp');
+        setSuccess('OTP sent to your email.');
+      } else if (view === 'login_otp') {
+        await verifyLogin(formData.email, formData.otp);
         navigate('/');
       } else if (view === 'register') {
-        const res = await register(formData.username, formData.email, formData.password);
+        const res = await requestAccess(formData.username, formData.email, formData.password);
         setSuccess(res.message);
-        setView('otp');
-      } else if (view === 'otp') {
-        await verifyOtp(formData.email, formData.otp);
-        navigate('/');
+        setView('login');
+      } else if (view === 'forgot_password') {
+        await forgotPassword(formData.email);
+        setView('reset_password');
+        setSuccess('Reset code sent to your email.');
+      } else if (view === 'reset_password') {
+        await resetPassword(formData.email, formData.otp, formData.newPassword);
+        setSuccess('Password reset successfully. Please login.');
+        setView('login');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Action failed. Please try again.');
@@ -56,8 +65,10 @@ export default function SignInPage() {
           </h1>
           <p className="text-muted-foreground text-sm">
             {view === 'login' && 'Authenticate to manage your portfolio.'}
-            {view === 'register' && 'Setup your admin master account.'}
-            {view === 'otp' && 'Enter the verification code sent to your email.'}
+            {view === 'login_otp' && 'Enter the 2FA code sent to your email.'}
+            {view === 'register' && 'Request super admin access.'}
+            {view === 'forgot_password' && 'Enter your email to receive a reset code.'}
+            {view === 'reset_password' && 'Enter the reset code and your new password.'}
           </p>
         </div>
 
@@ -95,44 +106,44 @@ export default function SignInPage() {
               </div>
             )}
 
-            {(view === 'login' || view === 'register') && (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-primary tracking-widest uppercase">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-background/60 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all"
-                      placeholder="admin@portfolio.com"
-                    />
-                  </div>
+            {(view === 'login' || view === 'register' || view === 'forgot_password') && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono text-primary tracking-widest uppercase">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-background/60 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all"
+                    placeholder="admin@portfolio.com"
+                  />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-primary tracking-widest uppercase">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={formData.password}
-                      onChange={e => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full bg-background/60 border border-white/10 rounded-xl pl-10 pr-12 py-3 text-sm text-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all"
-                      placeholder="••••••••"
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-              </>
+              </div>
             )}
 
-            {view === 'otp' && (
+            {(view === 'login' || view === 'register' || view === 'reset_password') && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono text-primary tracking-widest uppercase">{view === 'reset_password' ? 'New Password' : 'Password'}</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={view === 'reset_password' ? formData.newPassword : formData.password}
+                    onChange={e => view === 'reset_password' ? setFormData({ ...formData, newPassword: e.target.value }) : setFormData({ ...formData, password: e.target.value })}
+                    className="w-full bg-background/60 border border-white/10 rounded-xl pl-10 pr-12 py-3 text-sm text-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all"
+                    placeholder="••••••••"
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(view === 'login_otp' || view === 'reset_password') && (
               <div className="space-y-1.5">
                 <label className="text-xs font-mono text-primary tracking-widest uppercase">6-Digit Access Code</label>
                 <div className="relative">
@@ -155,24 +166,31 @@ export default function SignInPage() {
               disabled={loading}
               className="w-full py-3.5 bg-gradient-to-r from-primary to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-[1.02] transition-all duration-200 mt-4"
             >
-              {loading ? 'Processing...' : (view === 'register' ? 'Register Account' : view === 'otp' ? 'Verify & Access' : 'Login')}
+              {loading ? 'Processing...' : 
+                view === 'register' ? 'Request Access' : 
+                view === 'login_otp' ? 'Verify & Access' : 
+                view === 'forgot_password' ? 'Send Reset Code' : 
+                view === 'reset_password' ? 'Reset Password' : 'Login'}
             </button>
           </form>
 
-          {view !== 'otp' && (
-            <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-              {view === 'login' ? (
-                <>
-                  <span>No authorized account?</span>
-                  <button onClick={() => { setView('register'); setError(''); }} className="text-primary hover:underline">Enroll Now</button>
-                </>
-              ) : (
-                <>
-                  <span>Already enrolled?</span>
-                  <button onClick={() => { setView('login'); setError(''); }} className="text-primary hover:underline">Login Instead</button>
-                </>
-              )}
+          {view === 'login' && (
+            <div className="mt-6 flex flex-col items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex gap-2">
+                <span>Forgot password?</span>
+                <button onClick={() => { setView('forgot_password'); setError(''); setSuccess(''); }} className="text-primary hover:underline">Reset it</button>
+              </div>
+              <div className="flex gap-2">
+                <span>No authorized account?</span>
+                <button onClick={() => { setView('register'); setError(''); setSuccess(''); }} className="text-primary hover:underline">Request Access</button>
+              </div>
             </div>
+          )}
+          
+          {view !== 'login' && (
+             <div className="mt-6 flex items-center justify-center text-sm text-muted-foreground">
+                <button onClick={() => { setView('login'); setError(''); setSuccess(''); }} className="text-primary hover:underline">Return to Login</button>
+             </div>
           )}
 
         </div>

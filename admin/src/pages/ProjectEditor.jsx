@@ -39,6 +39,12 @@ export default function ProjectEditor() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!imageFile && !formData.videoLink && !projectToEdit?.image) {
+      alert("Please provide either a Cover Artwork (upload) or an External Media Link.");
+      return;
+    }
+
     setSaving(true);
     
     // Convert object to complex multi-part FormData object
@@ -97,7 +103,7 @@ export default function ProjectEditor() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-primary">Cover Artwork (Cloudinary Node) {isEditing ? '' : '*'}</label>
+          <label className="text-sm text-primary">Cover Artwork (Cloudinary Node)</label>
           <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="w-full bg-card border border-white/10 rounded px-4 py-2" />
         </div>
         

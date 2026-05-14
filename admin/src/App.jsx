@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import { UserProvider } from './context/UserContext';
+import { UserProvider, useUser } from './context/UserContext';
 import { ProjectProvider } from './context/ProjectContext';
 import { CategoryProvider } from './context/CategoryContext';
 import { AchievementProvider } from './context/AchievementContext';
@@ -17,7 +17,7 @@ import SkillsServicesEditor from './pages/SkillsServicesEditor';
 import SignInPage from './pages/SignInPage';
 
 const PrivateRoute = ({ children }) => {
-  const { isLoaded, isSignedIn } = require('./context/UserContext').useUser();
+  const { isLoaded, isSignedIn } = useUser();
 
   if (!isLoaded) return <div className="p-8 text-center">Loading context...</div>;
   if (!isSignedIn) return <Navigate to="/sign-in" replace />;

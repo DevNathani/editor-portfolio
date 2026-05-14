@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema({
   otpExpires: {
     type: Date,
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved'],
+    default: 'pending'
+  },
+  approvalToken: {
+    type: String,
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
@@ -41,6 +49,7 @@ userSchema.pre('save', async function() {
 
 // Method for comparing passwords securely during login
 userSchema.methods.matchPassword = async function(enteredPassword) {
+  if (!this.password || !enteredPassword) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

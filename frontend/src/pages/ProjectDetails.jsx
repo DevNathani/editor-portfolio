@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Play, Wrench, Lightbulb } from "lucide-react";
+import { ArrowLeft, Play, Wrench, Lightbulb, FileText } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import { useEffect, useState } from "react";
@@ -43,9 +43,13 @@ export default function ProjectDetails() {
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-black">
              <iframe src={project.videoLink} className="w-full h-full" frameBorder="0" allowFullScreen></iframe>
           </div>
-        ) : (
+        ) : project.image ? (
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted">
             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-black to-zinc-900 flex items-center justify-center">
+            <FileText className="w-20 h-20 text-muted-foreground/20" />
           </div>
         )}
       </div>

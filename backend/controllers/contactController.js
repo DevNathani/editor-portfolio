@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import transporter from '../config/nodemailer.js';
 
 export const sendContactEmail = async (req, res) => {
   const { name, email, message } = req.body;
@@ -16,10 +14,10 @@ export const sendContactEmail = async (req, res) => {
   }
 
   try {
-    await resend.emails.send({
-      from: 'onboarding@resend.dev', // Change to your verified domain later
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
       to: process.env.CONTACT_TO_EMAIL,
-      reply_to: email,
+      replyTo: email,
       subject: `New Enquiry from ${name}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #09090b; color: #e4e4e7; padding: 32px; border-radius: 12px; border: 1px solid #27272a;">
@@ -39,7 +37,7 @@ export const sendContactEmail = async (req, res) => {
 
     res.status(200).json({ message: 'Message sent successfully!' });
   } catch (error) {
-    console.error('Resend error:', error);
+    console.error('Nodemailer error:', error);
     res.status(500).json({ message: 'Failed to send message. Please try again later.' });
   }
 };

@@ -13,7 +13,7 @@ const projectSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: true // Cloudinary URL
+    required: false // Optional if videoLink is provided
   },
   description: {
     type: String,
